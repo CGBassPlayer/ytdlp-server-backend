@@ -59,24 +59,6 @@ async def get_video(video_id: str, db: Session = Depends(get_db)):
     return db_video
 
 
-def convert(task: Task, db: Session):
-    video = db.query(Video).filter(Video.vid == task.vid).first()
-    return TaskGet(tid=task.tid,
-                   video=VideoGet(
-                       vid=task.vid,
-                       platform=video.platform,
-                       url=video.url,
-                       title=video.title,
-                       description=video.description
-                   ),
-                   create_date=task.create_date,
-                   finish_date=task.finish_date,
-                   status=task.status,
-                   percent=task.percent,
-                   filename=task.filename,
-                   logs=task.logs)
-
-
 @router.get("/task/{task_id}", response_model=TaskGet)
 async def get_task(task_id: str, db: Session = Depends(get_db)):
     """
