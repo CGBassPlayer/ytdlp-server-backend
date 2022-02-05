@@ -5,88 +5,100 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 from starlette import status
 
+from backend.db.models.status import Status
 from backend.db.models.task import Task
-from backend.db.models.ytdlp_config import YtdlpConfig
+from backend.db.models.video import Video
+from backend.db.models.ytdlp_opts import YtdlpOpt
 from backend.db.session import get_db
-from backend.schemas.task import TaskCreate
-from backend.schemas.ytdlp_config import YtdlpConfigGet, YtdlpConfigUpdate, YtdlpConfigCreate
+from backend.schemas.status import StatusGet
+from backend.schemas.task import TaskGet
+from backend.schemas.video import VideoGet
+from backend.schemas.ytdlp_opts import YtdlpOptGet, YtdlpOptUpdate
 
 router = APIRouter()
 
 
-@router.get("/config", response_model=List[YtdlpConfigGet])
-async def get_configs(db: Session = Depends(get_db)):
+@router.get("/config/{task_id}", response_model=List[YtdlpOptGet])
+async def get_config(task_id: str, db: Session = Depends(get_db)):
     """
     Get all the configuration settings from the database
     """
-    configs = db.query(YtdlpConfig).all()
-    if not configs:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No configurations were found")
-    return configs
-
-
-@router.post("/config", response_model=YtdlpConfigCreate)
-async def create_config(config: YtdlpConfigCreate, db: Session = Depends(get_db)):
-    """
-    Create a new configuration parameter
-    """
-    db_config = YtdlpConfigCreate(flag=config.flag, value=config.value, enabled=True)
-    db.add(db_config)
-    db.commit()
-    db.refresh(db_config)
+    db_config: YtdlpOptGet = db.query(YtdlpOpt).filter(YtdlpOpt.tid == task_id).all()
+    print(db_config)
+    if not db_config:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No configuration was found for {task_id}")
     return db_config
 
 
 @router.put("/config")
-async def update_config(config: YtdlpConfigUpdate, db: Session = Depends(get_db)):
+async def update_config(config: YtdlpOptUpdate, db: Session = Depends(get_db)):
     """
     Update configuration parameter
     """
-    old_config: YtdlpConfig = db.query(YtdlpConfig).get(config.flag)
-
+    old_config: YtdlpOpt = db.query(YtdlpOpt).get(config.tid)
     if not old_config:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Configuration {config.flag} was not found")
-
-    if config.value is not None:
-        old_config.value = config.value
-    old_config.enabled = config.enabled
-
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Configuration for task {config.tid} was not found")
+    old_config.options = config.options
     db.commit()
+    db_status: StatusGet = db.query(Status).filter(Status.message == "succeeded").first()
     return {
-        "code": "success",
+        "status": db_status.message,
         "config": config
     }
 
 
-@router.get("/task")
-async def get_tasks(db: Session = Depends(get_db)):
+@router.get("/video/{video_id}")
+async def get_video(video_id: str, db: Session = Depends(get_db)):
     """
-    Get all tasks
+    Get details of a task by its id
     """
-    tasks = db.query(Task).all()
-
-    if not tasks:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No tasks found!")
-
-    return tasks
+    db_video: Video = db.query(Video).filter(Video.vid == video_id).first()
+    if not db_video:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No video was found for {video_id}")
+    return db_video
 
 
-@router.post("/task")
-async def create_task(task: TaskCreate, db: Session = Depends(get_db)):
+def convert(task: Task, db: Session):
+    video = db.query(Video).filter(Video.vid == task.vid).first()
+    return TaskGet(tid=task.tid,
+                   video=VideoGet(
+                       vid=task.vid,
+                       platform=video.platform,
+                       url=video.url,
+                       title=video.title,
+                       description=video.description
+                   ),
+                   create_date=task.create_date,
+                   finish_date=task.finish_date,
+                   status=task.status,
+                   percent=task.percent,
+                   filename=task.filename,
+                   logs=task.logs)
+
+
+@router.get("/task/{task_id}", response_model=TaskGet)
+async def get_task(task_id: str, db: Session = Depends(get_db)):
     """
-    Create a new task
+    Get details of a task by its id
     """
-    new_task = Task(tid=task.tid, url=task.url, state=task.state, valid=task.valid, title=task.title,
-                    create_time=task.create_time, finish_time=task.finish_time, format=task.format, ext=task.ext,
-                    thumbnail=task.thumbnail, duration=task.duration, view_count=task.view_count,
-                    like_count=task.like_count, dislike_count=task.dislike_count, average_rating=task.average_rating,
-                    description=task.description)
-
-    db_task = db.query(Task).filter(Task.tid == task.tid).first()
-    if db_task is not None:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Task id {task.tid} already exists")
-
-    db.add(new_task)
-    db.commit()
-    db.refresh(new_task)
-    return new_task
+    db_task: Task = db.query(Task).filter(Task.tid == task_id).first()
+    if not db_task:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No task was found for {task_id}")
+    db_video = db.query(Video).filter(Video.vid == db_task.vid).first()
+    if not db_video:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No video was found for {db_task.vid}")
+    return TaskGet(tid=db_task.tid,
+                   video=VideoGet(
+                       vid=db_task.vid,
+                       platform=db_video.platform,
+                       url=db_video.url,
+                       title=db_video.title,
+                       description=db_video.description
+                   ),
+                   create_date=db_task.create_date,
+                   finish_date=db_task.finish_date,
+                   status=db_task.status,
+                   percent=db_task.percent,
+                   filename=db_task.filename,
+                   logs=db_task.logs)
