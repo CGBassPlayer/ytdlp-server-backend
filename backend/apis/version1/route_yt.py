@@ -8,11 +8,13 @@ from starlette import status
 from backend.apis.utils import get_message
 from backend.db.models.status import Status
 from backend.db.models.task import Task
+from backend.db.models.task_logs import TaskLogs
 from backend.db.models.video import Video
 from backend.db.models.ytdlp_opts import YtdlpOpt
 from backend.db.session import get_db
 from backend.schemas.status import StatusGet
 from backend.schemas.task import TaskGet, TaskCreate
+from backend.schemas.task_logs import TaskLogsGet
 from backend.schemas.video import VideoGet
 from backend.schemas.ytdlp_opts import YtdlpOptGet, YtdlpOptUpdate
 
@@ -71,6 +73,13 @@ async def get_task(task_id: str, db: Session = Depends(get_db)):
     db_video = db.query(Video).filter(Video.vid == db_task.vid).first()
     if not db_video:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No video was found for {db_task.vid}")
+    db_logs = db.query(TaskLogs).filter(TaskLogs.tid == task_id).all()
+    logs = []
+    for log in db_logs:
+        logs.append(TaskLogsGet(timestamp=log.log_timestamp,
+                                level=log.level,
+                                message=log.message))
+
     return TaskGet(tid=db_task.tid,
                    video=VideoGet(
                        vid=db_task.vid,
@@ -84,7 +93,7 @@ async def get_task(task_id: str, db: Session = Depends(get_db)):
                    status=get_message(db_task.status, db),
                    percent=db_task.percent,
                    filename=db_task.filename,
-                   logs=db_task.logs)
+                   logs=logs)
 
 
 @router.post("/task")
@@ -94,10 +103,12 @@ async def create_task(task: TaskCreate, db: Session = Depends(get_db)):
                    status=1)
     if not task.config:
         task.config = db.query(YtdlpOpt).filter(YtdlpOpt.tid == "<global>").first().options
-        db_task.logs = "Using global configuration::"
+        db_log = TaskLogs(tid=task.tid,
+                          message="global configuration loaded for this task")
+        db.add(db_log)
     db_opts = YtdlpOpt(tid=task.tid,
-                       options=task.config)
+                       options=task.config.__str__())
     db.add(db_task)
     db.add(db_opts)
     db.commit()
-    return db_task
+    return {"message": "success"}

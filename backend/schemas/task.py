@@ -1,8 +1,9 @@
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel
 from pydantic.schema import datetime
 
+from backend.schemas.task_logs import TaskLogsGet
 from backend.schemas.video import VideoGet
 
 
@@ -17,7 +18,7 @@ class TaskGet(TaskBase):
     status: str
     percent: str
     filename: Optional[str]
-    logs: str
+    logs: Optional[List[TaskLogsGet]]
 
     class Config:
         orm_mode = True
@@ -25,7 +26,7 @@ class TaskGet(TaskBase):
 
 class TaskCreate(TaskBase):
     vid: str
-    config: Optional[str]
+    config: Optional[List[str]]
 
 
 class TaskUpdate(TaskBase):
