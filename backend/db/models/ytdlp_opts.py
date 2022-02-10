@@ -1,4 +1,5 @@
 from sqlalchemy import Column, String
+from sqlalchemy.orm import relationship
 
 from backend.db.base import Base
 
@@ -8,8 +9,7 @@ class YtdlpOpt(Base):
 
     tid = Column(String, nullable=False, primary_key=True)
     options = Column(String)
-
-    # TODO: relationship with task
+    task = relationship("Task")
 
     def __init__(self, tid, options):
         self.tid: str = tid

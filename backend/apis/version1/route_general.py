@@ -1,3 +1,6 @@
+import platform
+
+import fastapi
 import yt_dlp.version
 from fastapi import APIRouter
 
@@ -10,5 +13,7 @@ router = APIRouter()
 def get_versions():
     return {
         "api version": settings.PROJECT_VERSION,
-        "yt-dlp version": yt_dlp.options.__version__
+        "yt-dlp version": yt_dlp.options.__version__,
+        "Python version": platform.python_version(),
+        "fastAPI version": fastapi.__version__,
     }

@@ -5,13 +5,14 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 from starlette import status
 
+from backend.apis.utils import get_message
 from backend.db.models.status import Status
 from backend.db.models.task import Task
 from backend.db.models.video import Video
 from backend.db.models.ytdlp_opts import YtdlpOpt
 from backend.db.session import get_db
 from backend.schemas.status import StatusGet
-from backend.schemas.task import TaskGet
+from backend.schemas.task import TaskGet, TaskCreate
 from backend.schemas.video import VideoGet
 from backend.schemas.ytdlp_opts import YtdlpOptGet, YtdlpOptUpdate
 
@@ -64,7 +65,7 @@ async def get_task(task_id: str, db: Session = Depends(get_db)):
     """
     Get details of a task by its id
     """
-    db_task: Task = db.query(Task).filter(Task.tid == task_id).first()
+    db_task = db.query(Task).filter(Task.tid == task_id).first()
     if not db_task:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No task was found for {task_id}")
     db_video = db.query(Video).filter(Video.vid == db_task.vid).first()
@@ -80,7 +81,23 @@ async def get_task(task_id: str, db: Session = Depends(get_db)):
                    ),
                    create_date=db_task.create_date,
                    finish_date=db_task.finish_date,
-                   status=db_task.status,
+                   status=get_message(db_task.status, db),
                    percent=db_task.percent,
                    filename=db_task.filename,
                    logs=db_task.logs)
+
+
+@router.post("/task")
+async def create_task(task: TaskCreate, db: Session = Depends(get_db)):
+    db_task = Task(tid=task.tid,
+                   vid=task.vid,
+                   status=1)
+    if not task.config:
+        task.config = db.query(YtdlpOpt).filter(YtdlpOpt.tid == "<global>").first().options
+        db_task.logs = "Using global configuration::"
+    db_opts = YtdlpOpt(tid=task.tid,
+                       options=task.config)
+    db.add(db_task)
+    db.add(db_opts)
+    db.commit()
+    return db_task

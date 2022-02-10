@@ -15,4 +15,4 @@ class Video(Base):
     task = relationship("Task")
 
     def __repr__(self):
-        return f"<Task(id: {self.vid}, platform: {self.platform}, url: {self.url}, title: {self.title})>"
+        return f"<Video(id: {self.vid}, platform: {self.platform}, url: {self.url}, title: {self.title})>"

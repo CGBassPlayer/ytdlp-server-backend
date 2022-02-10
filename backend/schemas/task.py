@@ -11,10 +11,10 @@ class TaskBase(BaseModel):
 
 
 class TaskGet(TaskBase):
-    video: Optional[VideoGet]
+    video: VideoGet
     create_date: datetime
     finish_date: Optional[datetime]
-    status: int
+    status: str
     percent: str
     filename: Optional[str]
     logs: str
@@ -25,6 +25,7 @@ class TaskGet(TaskBase):
 
 class TaskCreate(TaskBase):
     vid: str
+    config: Optional[str]
 
 
 class TaskUpdate(TaskBase):

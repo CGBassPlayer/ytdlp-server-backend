@@ -1,6 +1,4 @@
-from datetime import datetime
-
-from sqlalchemy import Column, String, Integer, DateTime, ForeignKey
+from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, func
 
 from backend.db.base import Base
 
@@ -8,9 +6,9 @@ from backend.db.base import Base
 class Task(Base):
     __tablename__ = "task"
 
-    tid = Column(String, nullable=False, primary_key=True)
+    tid = Column(String, ForeignKey("ytdlp_opt.tid"), nullable=False, primary_key=True)
     vid = Column(String, ForeignKey("video.vid"), nullable=False)
-    create_date = Column(DateTime, nullable=False, default=datetime.timestamp)
+    create_date = Column(DateTime, nullable=False, server_default=func.now())
     finish_date = Column(DateTime)
     status = Column(Integer, nullable=False)
     percent = Column(String, nullable=False, default="0.0%")
@@ -18,4 +16,4 @@ class Task(Base):
     logs = Column(String, default="[]")
 
     def __repr__(self):
-        return f"<Task(task_id: {self.tid}, video_id: {self.vid}, create_date: {self.create_date}, status: {self.status})>"
+        return f"<Task(id: {self.tid}, video_id: {self.vid}, create_date: {self.create_date}, status: {self.status})>"

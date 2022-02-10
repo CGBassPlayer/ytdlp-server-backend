@@ -8,6 +8,7 @@ fastapi = "*"
 yt-dlp = "*"
 sqlalchemy = "*"
 python-dotenv = "*"
+jinja2 = "*"
 
 [dev-packages]
 
