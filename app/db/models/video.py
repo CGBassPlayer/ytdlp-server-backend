@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship
 
-from backend.db.base import Base
+from app.db.base import Base
 
 
 class Video(Base):

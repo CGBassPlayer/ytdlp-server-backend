@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, func
 
-from backend.db.base import Base
+from app.db.base import Base
 
 
 class Task(Base):
@@ -8,7 +8,7 @@ class Task(Base):
 
     tid = Column(String, ForeignKey("ytdlp_opt.tid"), ForeignKey("task_logs.tid"), nullable=False, primary_key=True)
     vid = Column(String, ForeignKey("video.vid"), nullable=False)
-    create_date = Column(DateTime, nullable=False, server_default=func.now())
+    create_date = Column(DateTime, nullable=False, server_default=func.now(tz="America/New_York"))
     finish_date = Column(DateTime)
     status = Column(Integer, nullable=False)
     percent = Column(String, nullable=False, default="0.0%")

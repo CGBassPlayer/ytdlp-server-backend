@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Integer
 
-from backend.db.base import Base
+from app.db.base import Base
 
 
 class Status(Base):

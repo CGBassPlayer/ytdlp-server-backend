@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from backend.core.config import settings
+from app.core.config import settings
 
 engine = create_engine(settings.SQLITE_DB, connect_args={"check_same_thread": False})
 

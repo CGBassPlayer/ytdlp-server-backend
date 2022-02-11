@@ -3,8 +3,8 @@ from typing import Optional, List
 from pydantic import BaseModel
 from pydantic.schema import datetime
 
-from backend.schemas.task_logs import TaskLogsGet
-from backend.schemas.video import VideoGet
+from app.schemas.task_logs import TaskLogsGet
+from app.schemas.video import VideoGet
 
 
 class TaskBase(BaseModel):

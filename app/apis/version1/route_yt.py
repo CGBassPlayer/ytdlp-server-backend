@@ -5,18 +5,18 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 from starlette import status
 
-from backend.apis.utils import get_message
-from backend.db.models.status import Status
-from backend.db.models.task import Task
-from backend.db.models.task_logs import TaskLogs
-from backend.db.models.video import Video
-from backend.db.models.ytdlp_opts import YtdlpOpt
-from backend.db.session import get_db
-from backend.schemas.status import StatusGet
-from backend.schemas.task import TaskGet, TaskCreate
-from backend.schemas.task_logs import TaskLogsGet
-from backend.schemas.video import VideoGet
-from backend.schemas.ytdlp_opts import YtdlpOptGet, YtdlpOptUpdate
+from app.apis.utils import get_message
+from app.db.models.status import Status
+from app.db.models.task import Task
+from app.db.models.task_logs import TaskLogs
+from app.db.models.video import Video
+from app.db.models.ytdlp_opts import YtdlpOpt
+from app.db.session import get_db
+from app.schemas.status import StatusGet
+from app.schemas.task import TaskGet, TaskCreate
+from app.schemas.task_logs import TaskLogsGet
+from app.schemas.video import VideoGet
+from app.schemas.ytdlp_opts import YtdlpOptGet, YtdlpOptUpdate
 
 router = APIRouter()
 
@@ -79,7 +79,6 @@ async def get_task(task_id: str, db: Session = Depends(get_db)):
         logs.append(TaskLogsGet(timestamp=log.log_timestamp,
                                 level=log.level,
                                 message=log.message))
-
     return TaskGet(tid=db_task.tid,
                    video=VideoGet(
                        vid=db_task.vid,
