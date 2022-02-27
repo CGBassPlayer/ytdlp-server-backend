@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, Integer, func
 from sqlalchemy.orm import relationship
 
-from app.db.base import Base
+from backend.db.base import Base
 
 
 class TaskLogs(Base):
@@ -12,6 +12,11 @@ class TaskLogs(Base):
     level = Column(Integer, nullable=False, default=3)
     message = Column(String, nullable=False)
     task = relationship("Task")
+
+    def __init__(self, tid, message, level=3):
+        self.tid = tid
+        self.level = level
+        self.message = message
 
     def __repr__(self):
         return f"<TaskLog(tid: {self.tid}, timestamp: {self.timestamp}, level: {self.level}, message: {self.message})>"

@@ -3,15 +3,16 @@ from typing import Optional, List
 from pydantic import BaseModel
 from pydantic.schema import datetime
 
-from app.schemas.task_logs import TaskLogsGet
-from app.schemas.video import VideoGet
+from backend.schemas.task_logs import TaskLogsGet
+from backend.schemas.video import VideoGet, VideoCreate
 
 
 class TaskBase(BaseModel):
-    tid: str
+    pass
 
 
 class TaskGet(TaskBase):
+    tid: str
     video: VideoGet
     create_date: datetime
     finish_date: Optional[datetime]
@@ -25,11 +26,12 @@ class TaskGet(TaskBase):
 
 
 class TaskCreate(TaskBase):
-    vid: str
+    video: VideoCreate
     config: Optional[List[str]]
 
 
 class TaskUpdate(TaskBase):
+    tid: str
     vid: Optional[str]
     status: Optional[str]
     filename: Optional[str]

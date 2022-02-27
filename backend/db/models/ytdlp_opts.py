@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship
 
-from app.db.base import Base
+from backend.db.base import Base
 
 
 class YtdlpOpt(Base):

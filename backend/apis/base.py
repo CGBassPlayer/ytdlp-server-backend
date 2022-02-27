@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.apis.version1 import route_general, route_yt
+from backend.apis.version1 import route_general, route_yt
 
 api_router = APIRouter()
 api_router.include_router(route_general.router, prefix="", tags=["General"])
