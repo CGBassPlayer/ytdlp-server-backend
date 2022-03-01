@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from pydantic.schema import datetime
 
 from backend.schemas.task_logs import TaskLogsGet
-from backend.schemas.video import VideoGet, VideoCreate
+from backend.schemas.video import VideoGet
 
 
 class TaskBase(BaseModel):
@@ -26,7 +26,7 @@ class TaskGet(TaskBase):
 
 
 class TaskCreate(TaskBase):
-    video: VideoCreate
+    url: str
     config: Optional[List[str]]
 
 
