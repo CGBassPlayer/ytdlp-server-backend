@@ -4,19 +4,18 @@ from pydantic import BaseModel
 
 
 class VideoBase(BaseModel):
-    vid: str
-    platform: str
     url: str
+    title: Optional[str]
+    description: Optional[str]
 
 
 class VideoGet(VideoBase):
-    title: Optional[str]
-    description: Optional[str]
+    vid: str
+    platform: str
 
     class Config:
         orm_mode = True
 
 
 class VideoCreate(VideoBase):
-    title: Optional[str]
-    description: Optional[str]
+    vid: Optional[str]

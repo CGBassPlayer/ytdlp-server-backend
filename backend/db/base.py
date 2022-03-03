@@ -8,7 +8,7 @@ class Base:
     id: Any
     __name__: str
 
-    # to generate tablename from classname
+    # to generate table name from classname
     @declared_attr
-    def __tablename__(cls) -> str:
-        return cls.__name__.lower()
+    def __tablename__(self) -> str:
+        return self.__name__.lower()
