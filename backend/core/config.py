@@ -20,5 +20,7 @@ class Settings:
     DATABASE_URL = f"{DATABASE_TYPE}://{DATABASE_USER}:{DATABASE_PASSWORD}@{DATABASE_SERVER}:{DATABASE_PORT}/{DATABASE_DB}"
     SQLITE_DB = "sqlite:///ytdlp-server.sqlite3"
 
+    LOG_LEVEL = 3
+
 
 settings = Settings()

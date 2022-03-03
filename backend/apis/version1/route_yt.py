@@ -5,7 +5,7 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 from starlette import status
 
-from backend.apis.utils import get_message
+from backend.core.config import settings
 from backend.db.models.status import Status
 from backend.db.models.task import Task
 from backend.db.models.task_logs import TaskLogs
@@ -13,9 +13,7 @@ from backend.db.models.video import Video
 from backend.db.models.ytdlp_opts import YtdlpOpt
 from backend.db.session import get_db
 from backend.schemas.status import StatusGet
-from backend.schemas.task import TaskGet, TaskCreate
-from backend.schemas.task_logs import TaskLogsGet
-from backend.schemas.video import VideoGet
+from backend.schemas.task import TaskGet, TaskCreate, to_TaskGet
 from backend.schemas.ytdlp_opts import YtdlpOptGet, YtdlpOptUpdate
 
 router = APIRouter()
@@ -68,39 +66,33 @@ async def get_video(vid: str = None, db: Session = Depends(get_db)):
     return db_video
 
 
+@router.get("/task/all", response_model=List[TaskGet])
+async def get_all_tasks(log_level: int = settings.LOG_LEVEL, db: Session = Depends(get_db)):
+    """
+    Get all tasks that are not skipped or completed successfully
+    """
+    db_tasks: List[Task] = db.query(Task).filter(Task.status != 4 or Task.status != 5).all()
+    tasks = []
+    for db_task in db_tasks:
+        db_video: Video = db.query(Video).filter(Video.vid == db_task.vid).first()
+        db_logs = db.query(TaskLogs).filter(TaskLogs.tid == db_task.tid and TaskLogs.level >= log_level).all()
+        tasks.append(to_TaskGet(db, db_task, db_video, db_logs))
+    return tasks
+
+
 @router.get("/task", response_model=TaskGet)
-async def get_task(tid: str, db: Session = Depends(get_db)):
+async def get_task(tid: str, log_level: int = settings.LOG_LEVEL, db: Session = Depends(get_db)):
     """
     Get details of a task by its id
     """
     db_task = db.query(Task).filter(Task.tid == tid).first()
     if not db_task:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No task was found for {tid}")
-
     db_video = db.query(Video).filter(Video.vid == db_task.vid).first()
     if not db_video:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No video was found for {db_task.vid}")
-    db_logs = db.query(TaskLogs).filter(TaskLogs.tid == tid).all()
-    logs = []
-    for log in db_logs:
-        logs.append(TaskLogsGet(timestamp=log.log_timestamp,
-                                level=log.level,
-                                message=log.message))
-
-    return TaskGet(tid=db_task.tid,
-                   video=VideoGet(
-                       vid=db_task.vid,
-                       platform=db_video.platform,
-                       url=db_video.url,
-                       title=db_video.title,
-                       description=db_video.description
-                   ),
-                   create_date=db_task.create_date,
-                   finish_date=db_task.finish_date,
-                   status=get_message(db_task.status, db),
-                   percent=db_task.percent,
-                   filename=db_task.filename,
-                   logs=logs)
+    db_logs = db.query(TaskLogs).filter(TaskLogs.tid == tid and TaskLogs.level >= log_level).all()
+    return to_TaskGet(db, db_task, db_video, db_logs)
 
 
 @router.post("/task")

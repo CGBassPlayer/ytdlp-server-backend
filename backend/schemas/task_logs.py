@@ -9,7 +9,7 @@ class TaskLogsBase(BaseModel):
 
 class TaskLogsGet(TaskLogsBase):
     timestamp: str
-    level: int
+    level: str
 
     class Config:
         orm_mode: True

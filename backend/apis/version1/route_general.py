@@ -29,4 +29,6 @@ def get_revisions(db: Session = Depends(get_db)):
 
 @router.get("/version/{version}")
 def get_revisions(version: str, db: Session = Depends(get_db)):
-    return db.query(Version).filter(version == Version.id).first()
+    if version == "current":
+        return db.query(Version).filter(Version.id == settings.PROJECT_VERSION).first()
+    return db.query(Version).filter(Version.id == version).first()
