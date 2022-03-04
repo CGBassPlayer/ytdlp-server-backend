@@ -57,7 +57,7 @@ def to_TaskGet(db, task_model: TaskModel, video_model: VideoModel, logs_model: L
                                   description=video_model.description),
                    create_date=task_model.create_date,
                    finish_date=task_model.finish_date,
-                   status=task_model.status,
+                   status=utils.get_status_message(task_model.status, db),
                    percent=task_model.percent,
                    filename=task_model.filename,
                    logs=logs)

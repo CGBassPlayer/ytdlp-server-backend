@@ -4,7 +4,7 @@ from backend.db.models.log_levels import LogLevel
 from backend.db.models.status import Status
 
 
-def get_message(status: int, db: Session) -> str:
+def get_status_message(status: int, db: Session) -> str:
     """
     Get the name of the status code
 
