@@ -19,4 +19,4 @@ class TaskLogs(Base):
         self.message = message
 
     def __repr__(self):
-        return f"<TaskLog(tid: {self.tid}, timestamp: {self.timestamp}, level: {self.level}, message: {self.message})>"
+        return f"<TaskLog(tid: {self.tid}, timestamp: {self.log_timestamp}, level: {self.level}, message: {self.message})>"
